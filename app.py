@@ -1,76 +1,141 @@
-### Health Management APP
-from dotenv import load_dotenv
-
-load_dotenv() ## load all the environment variables
 import streamlit as st
-import os
 import google.generativeai as genai
 from PIL import Image
 
-genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+# Configure Gemini API
+genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
 
 
+# Function to get Gemini response
+def get_gemini_response(input_prompt, image, user_input):
 
+    model = genai.GenerativeModel("gemini-1.5-flash")
 
+    response = model.generate_content(
+        [input_prompt, image[0], user_input]
+    )
 
-## Function to load Goofle Gemini Pro Vision Api and get response
-
-def get_gemini_response(input,image,prompt):
-    model = genai.GenerativeModel("gemini-pro-vision")
-    response=model.generate_content([input,image[0],prompt])
     return response.text
 
-def input_image_setup(uploaded_file):
-    # check if a file has been uploaded
-    if uploaded_file is not None:
-        # read the files into bytes
-        bytes_data=uploaded_file.getvalue()
 
-        image_parts=[
+# Function to process uploaded image
+def input_image_setup(uploaded_file):
+
+    if uploaded_file is not None:
+
+        bytes_data = uploaded_file.getvalue()
+
+        image_parts = [
             {
-                "mime_type": uploaded_file.type, #Get the mime type of the uploaded file
+                "mime_type": uploaded_file.type,
                 "data": bytes_data
             }
         ]
+
         return image_parts
+
     else:
-        raise FileNotFoundError("No file uploaded")
-    
-##initialize our streamlit app   
+        return None
 
-input_prompt="""
-You are an expert in nutritionist where you need to see the food from the image
-               and calculate the total calories, also provide the etails of every food items with calories
-               is below format
-               
-               1. Item1- no of calories
-               2. Item2- no of calories
-               ----
-               ----
 
+# Nutrition prompt
+input_prompt = """
+You are an expert nutritionist.
+
+Analyze the food items from the image and provide:
+
+1. Food item names
+2. Estimated calories for each item
+3. Protein, carbohydrates, and fats (approximate)
+4. Total calories of the meal
+5. Brief health suggestion
+
+Format:
+
+1. Item Name
+   - Calories:
+   - Protein:
+   - Carbohydrates:
+   - Fats:
+
+2. Item Name
+   - Calories:
+   - Protein:
+   - Carbohydrates:
+   - Fats:
+
+------------------------
+Total Calories:
+Health Suggestion:
 """
 
-st.set_page_config(page_title="AI Nutritionist App")
 
-st.header("AI Nutritionist App")
-input=st.text_input("Input Prompt: ",key="input")
-uploaded_file=st.file_uploader("Choose an image...", type=["jpg","jpeg","png"])
-image=""
+# Streamlit page config
+st.set_page_config(
+    page_title="AI Nutritionist App",
+    page_icon="🍎",
+    layout="centered"
+)
+
+# App title
+st.title("🍎 AI Nutritionist App")
+
+st.write("Upload a food image and get nutrition analysis using Gemini AI.")
+
+
+# User input
+user_input = st.text_input(
+    "Additional Prompt (Optional)",
+    placeholder="Example: Is this meal good for weight loss?"
+)
+
+# File uploader
+uploaded_file = st.file_uploader(
+    "Choose a food image...",
+    type=["jpg", "jpeg", "png"]
+)
+
+# Display uploaded image
 if uploaded_file is not None:
-    image=Image.open(uploaded_file)
-    st.image(image, caption="Uploaded image.",use_column_width=True)
+
+    image = Image.open(uploaded_file)
+
+    st.image(
+        image,
+        caption="Uploaded Image",
+        use_column_width=True
+    )
 
 
-submit=st.button("Tell me the total calories")
+# Submit button
+submit = st.button("Analyze Nutrition")
 
-  ## If Submit button is clicked
 
+# Main logic
 if submit:
-    image_data=input_image_setup(uploaded_file)
-    response=get_gemini_response(input_prompt,image_data,input)
-    st.subheader("The Response is")
-    st.write(response)
 
+    if uploaded_file is None:
 
+        st.error("Please upload an image first.")
 
-    
+    else:
+
+        with st.spinner("Analyzing image..."):
+
+            try:
+
+                image_data = input_image_setup(uploaded_file)
+
+                response = get_gemini_response(
+                    input_prompt,
+                    image_data,
+                    user_input
+                )
+
+                st.subheader("Nutrition Analysis")
+
+                st.write(response)
+
+            except Exception as e:
+
+                st.error(f"Error: {str(e)}")
