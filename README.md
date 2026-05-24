@@ -16,7 +16,7 @@ The app uses **Google Gemini Multimodal Models** to analyze food images and gene
 ## 🚀 Live Demo
 
 🌐 **Streamlit Deployment:**  
- https://8p9gep2kpacncgidrzxaf5.streamlit.app/
+ https://nutrition-app-1.streamlit.app/
 
 ---
 
