@@ -12,7 +12,7 @@ st.write(genai.list_models())
 # Function to get Gemini response
 def get_gemini_response(input_prompt, image, user_input):
 
-    model = genai.GenerativeModel("gemini-pro-vision")
+    model = genai.GenerativeModel("models/gemini-2.5-flash")
 
     response = model.generate_content(
         [input_prompt, image[0], user_input]
