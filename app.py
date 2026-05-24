@@ -6,7 +6,7 @@ from PIL import Image
 genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
 
 
-st.write(genai.list_models())
+
 
 
 # Function to get Gemini response
